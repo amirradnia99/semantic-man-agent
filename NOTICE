@@ -1,0 +1,19 @@
+NOTICE — Bundled Knowledge Index
+
+The prebuilt knowledge index distributed with this bundle is derived from
+Linux manual pages that were installed on the machine that produced the
+bundle. The index is a derived work of those man pages.
+
+The man pages and their content remain under their original licenses
+(typically GPL, BSD, or other permissive licenses, depending on the
+upstream project). The MIT license that covers the code in this repository
+does NOT extend to the man-page content or to this derived index.
+
+If you redistribute this bundle, you must preserve the applicable notices
+from the upstream manual pages. If you are uncertain about your intended
+use, build your own index locally with:
+
+    ./run.sh index --sections all
+
+which uses only the man pages already present on your system.
+

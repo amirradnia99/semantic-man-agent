@@ -1,0 +1,52 @@
+#!/usr/bin/env bash
+# =============================================================================
+# semantic-man -- launcher for the portable release bundle
+#
+# Expects to live in the same directory as:
+#   - semantic_man.py
+#   - venv/                    (bundled Python environment)
+#   - semantic-man.data/       (bundled knowledge base)
+# =============================================================================
+set -Eeuo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$HERE"
+
+BUNDLED_DATA="$HERE/semantic-man.data"
+
+if [ ! -d "$BUNDLED_DATA" ]; then
+    echo "ERROR: semantic-man.data/ not found next to $0" >&2
+    exit 1
+fi
+
+export SEMANTIC_MAN_CACHE="$BUNDLED_DATA"
+
+if [ -x "$HERE/venv/bin/python" ]; then
+    PY="$HERE/venv/bin/python"
+elif command -v python3 >/dev/null 2>&1; then
+    PY="python3"
+else
+    echo "ERROR: no Python interpreter found." >&2
+    exit 1
+fi
+
+if [ "$#" -eq 0 ]; then
+    echo "Usage: $0 <command> [args...]"
+    echo
+    echo "Examples:"
+    echo "  $0 \"how do I compress a folder\""
+    echo "  $0 search \"list open network ports\" --verbose"
+    echo "  $0 agent"
+    echo "  $0 doctor"
+    exit 0
+fi
+
+FIRST="$1"
+case "$FIRST" in
+    index|search|agent|explain|troubleshoot|stats|doctor|benchmark|clear|version|--help|-h)
+        exec "$PY" "$HERE/semantic_man.py" "$@"
+        ;;
+    *)
+        exec "$PY" "$HERE/semantic_man.py" search "$@"
+        ;;
+esac
