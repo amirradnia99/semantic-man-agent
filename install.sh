@@ -1,44 +1,54 @@
 #!/bin/bash
-# Semantic Man-Page Agent Installer
-
+# =============================================================================
+# Linux Command Knowledge & Retrieval Engine  --  installer
+# =============================================================================
 set -e
 
-echo "🐧 Semantic Man-Page Agent Installer"
-echo "====================================="
+echo "🐧 Linux Command Knowledge & Retrieval Engine"
+echo "=============================================="
 
-# Check Python version
-python_version=$(python3 -c 'import sys; print(f"{sys.version_info.major}.{sys.version_info.minor}")')
-if [ "$(echo "$python_version < 3.8" | bc)" -eq 1 ]; then
-    echo "❌ Python 3.8+ required (found $python_version)"
+if ! python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3,8) else 1)'; then
+    echo "❌ Python 3.8+ required (found $(python3 --version 2>&1))"
     exit 1
 fi
-echo "✅ Python version: $python_version"
+echo "✅ Python $(python3 --version 2>&1 | awk '{print $2}')"
 
-# Create virtual environment
-echo "📦 Creating virtual environment..."
-python3 -m venv venv
+for t in groff man; do
+    if ! command -v "$t" >/dev/null 2>&1; then
+        echo "❌ Missing: $t"
+        echo "   Install with: sudo apt install -y groff man-db manpages manpages-dev"
+        exit 1
+    fi
+done
+echo "✅ groff and man"
+
+if ! python3 -c "import sqlite3; sqlite3.connect(':memory:').execute('CREATE VIRTUAL TABLE t USING fts5(x)')" 2>/dev/null; then
+    echo "❌ Python's sqlite3 lacks FTS5. Use a distro Python (not a stripped build)."
+    exit 1
+fi
+echo "✅ sqlite3 with FTS5"
+
+if [ ! -d venv ]; then
+    echo "📦 Creating virtual environment..."
+    python3 -m venv venv
+fi
 source venv/bin/activate
 
-# Install dependencies
 echo "📦 Installing dependencies..."
 pip install --upgrade pip
-pip install sentence-transformers chromadb numpy rich
+pip install -r requirements.txt
 
-# Make script executable
 chmod +x semantic_man.py
 
-# Create symlink
-mkdir -p ~/.local/bin
-ln -sf "$(pwd)/semantic_man.py" ~/.local/bin/semantic-man
+mkdir -p "$HOME/.local/bin"
+ln -sf "$(pwd)/semantic_man.py" "$HOME/.local/bin/semantic-man" 2>/dev/null || true
 
 echo ""
-echo "✅ Installation complete!"
+echo "✅ Installation complete."
 echo ""
-echo "To use:"
-echo "  semantic-man doctor      # Check system health"
-echo "  semantic-man index       # Build the index"
-echo "  semantic-man agent       # Start interactive mode"
-echo "  semantic-man search '...' # Quick search"
-echo ""
-echo "Make sure ~/.local/bin is in your PATH:"
-echo "  export PATH=\"\$HOME/.local/bin:\$PATH\""
+echo "Next steps (activate venv first):"
+echo "  source venv/bin/activate"
+echo "  python semantic_man.py doctor"
+echo "  python semantic_man.py index --sections all"
+echo "  python semantic_man.py benchmark --held-out"
+echo "  python semantic_man.py agent"

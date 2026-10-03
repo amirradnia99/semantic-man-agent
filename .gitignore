@@ -85,3 +85,8 @@ yarn-error.log*
 
 # Jupyter
 .ipynb_checkpoints/
+
+# Local backups and generated test artifacts
+.backup_*/
+FINAL_TEST_REPORT_*.txt
+finalize_v04.log
